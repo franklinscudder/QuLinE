@@ -12,7 +12,7 @@ Ax = b
 D = 2  #equation dimension
 A = np.eye(D) # ????????
 
-t = 4   # bits in b
+t = D * 2   # bits in b
 
 b = register(t)  # 2 bits per value in b, value of B is now [8, 0]?
 T = 2 ** t    # states in b
@@ -28,12 +28,8 @@ t0 = 1
 hamMat = []
 
 for tau in range(T):
-    tau_ = np.zeros((T, 1))
-    tau_[:,0] = np.array([int(i == tau) for i in range(T)])
-    print("tau_: ", tau_.shape)
-    tau_T = tau_.T
-    print("tau_T: ", tau_T.shape)
-    tautau = np.kron(tau_, tau_T)
+    tautau = np.zeros((T, T))
+    tautau[tau, tau] = 1
     print("tautau: ", tautau.shape)
     oper = expm(1j*tau*t0*A/T)
     print("oper: \n", oper)
@@ -41,7 +37,7 @@ for tau in range(T):
     print("TERM: ", term.shape)
     hamMat.append(term)
 
-print(np.array(hamMat).shape)
+print()
 hamMat = np.sum(hamMat, axis=0) 
 print(hamMat.shape)
 print(phi0b.NStates)
