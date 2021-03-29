@@ -19,7 +19,7 @@ def QFTmatrix(N, omg):
 
 bAmps = [3, 4]
 
-A = np.eye(len(bAmps))
+A = np.array([[1,-0.333],[-0.333,1]])
 bBits = 1
 b = register(bBits)
 b.setAmps(bAmps)
