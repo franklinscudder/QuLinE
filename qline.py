@@ -9,13 +9,22 @@ Ax = b
 
 """
 
+def QFTmatrix(N, omg):
+    matrix = np.zeros((N,N), dtype=complex)
+    for x in range(N):
+        for y in range(N):
+            matrix[x,y] = omg ** (x*y)
+    
+    return matrix / np.sqrt(N)
 
-# ????????
-
-t = 4   # bits in b
-A = np.eye(t)
-b = register(4)  
-T = 2 ** t    # states in b = 16
+bAmps = [3, 4]
+print(QFTmatrix(4,1j))
+input()
+A = np.eye(len(bAmps))
+b = register(1)
+b.setAmps(bAmps)
+t = 4  # bits in phi
+T = 2 ** t    # states in phi
 amps = np.sqrt(2/T) * np.array([np.sin((np.pi*(tau+0.5)/T)) for tau in range(T)])
 phi0 = register(t)
 phi0.setAmps(amps)
@@ -40,10 +49,30 @@ for tau in range(T):                    #construct hamilton operator
     print("TERM: ", term.shape)
     hamMatTerms.append(term)
 
-print()
-hamMat = np.sum(hamMatTerms, axis=0)   
-print(hamMat.shape)                    # these should match...
-print(phi0b.NStates)                   # ... but they dont
+
+hamMat = np.sum(hamMatTerms, axis=0)                   
 ham = genericGate(phi0b.NBits)        #make it a gate
 ham.matrix = hamMat
+
+QFT = genericGate(phi0b.NBits)
+QFT.matrix = QFTmatrix(phi0b.NBits, 1j)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
