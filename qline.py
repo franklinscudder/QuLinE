@@ -20,7 +20,8 @@ def QFTmatrix(N, omg):
 bAmps = [3, 4]
 
 A = np.eye(len(bAmps))
-b = register(1)
+bBits = 1
+b = register(bBits)
 b.setAmps(bAmps)
 t = 4  # bits in phi
 T = 2 ** t    # states in phi
@@ -38,23 +39,31 @@ for tau in range(T):                    #construct hamilton operator
     tautau[tau, tau] = 1             # t x t
     print("tautau: ", tautau.shape)
     oper = expm(1j*tau*t0*A/T)      # t x t
-    print("oper: \n", oper.shape)
+    print("oper: ", oper.shape)
     term = np.kron(tautau, oper)    # tT x tT
     print("TERM: ", term.shape)
     hamMatTerms.append(term)
 
+print("==============================")
 
 hamMat = np.sum(hamMatTerms, axis=0)                   
-ham = genericGate(phi0b.NBits)        #make it a gate
+ham = genericGate(bBits+t)        #make it a gate
 ham.matrix = hamMat
+print(hamMat.shape)
 
-QFT = genericGate(phi0b.NBits)    # only phi gets qft'd
-QFT.matrix = QFTmatrix(phi0b.NStates, 1j)
+QFT = genericGate(t)    ###### only phi gets qft'd
+QFTMat = QFTmatrix((2**bBits)*T, 1j)
+print(QFTMat.shape)
+QFT.matrix = np.kron(QFTMat, np.eye(bBits))
 
-phib = QFT(ham(phi0b))
+phi1b = QFT(ham(phi0b))
+print(phi1b)
 
 ancilla = register(1)    
-UinvBinit = prod(phib, ancilla)
+phi1ba = prod(phi1b, ancilla)
+
+for state in range(phi1ba.NStates):
+    pass
 
 
 
