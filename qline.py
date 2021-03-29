@@ -18,8 +18,7 @@ def QFTmatrix(N, omg):
     return matrix / np.sqrt(N)
 
 bAmps = [3, 4]
-print(QFTmatrix(4,1j))
-input()
+
 A = np.eye(len(bAmps))
 b = register(1)
 b.setAmps(bAmps)
