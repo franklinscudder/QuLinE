@@ -62,8 +62,24 @@ print(phi1b)
 ancilla = register(1)    
 phi1ba = prod(phi1b, ancilla)
 
-for state in range(phi1ba.NStates):
-    pass
+#first ? bits are lambdaK, next ? bits are Uj, finally ancilla.
+
+### [C C C ... C C 0 0 ... 0 0 Rx(?)]
+
+toKron = [np.eye(2)] * t + [np.zeros((2,2))] * bBits + [[0,-1],[1,0]] #?????
+
+res = toKron[0]
+for m in toKron[1:]:
+    res = np.kron(res, m)
+
+contRotGate = genericGate(t + bBits + 1)
+contRotGate.matrix = res
+
+phi1ba = contRotGate(phi1ba)
+
+iQFT = genericGate(t)
+iQFT.matrix = np.array(np.asmatrix(QFT.matrix).H)
+
 
 
 
