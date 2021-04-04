@@ -3,6 +3,8 @@ from qutiepy import *
 import numpy as np
 from scipy.linalg import expm
 
+
+
 """
 
 Ax = b
@@ -56,30 +58,52 @@ QFTMat = QFTmatrix((2**bBits)*T, 1j)
 print(QFTMat.shape)
 QFT.matrix = np.kron(QFTMat, np.eye(bBits))
 
-phi1b = QFT(ham(phi0b))
-print(phi1b)
+phib = QFT(ham(phi0b))
+print(phib)
 
 ancilla = register(1)    
-phi1ba = prod(phi1b, ancilla)
+phiba = prod(phib, ancilla)
 
 #first ? bits are lambdaK, next ? bits are Uj, finally ancilla.
 
 ### [C C C ... C C 0 0 ... 0 0 Rx(?)]
 
-toKron = [np.eye(2)] * t + [np.zeros((2,2))] * bBits + [[0,-1],[1,0]] #?????
+toKron = [np.eye(2)] * t + [np.array([[1,0],[0,0]])] * bBits + [np.array([[0,-1],[1,0]])]  #?????
 
 res = toKron[0]
 for m in toKron[1:]:
     res = np.kron(res, m)
+    print(res)
+    input()
 
+print(toKron)
+input()
 contRotGate = genericGate(t + bBits + 1)
 contRotGate.matrix = res
 
-phi1ba = contRotGate(phi1ba)
+phiba = contRotGate(phiba)
+print(phiba)
+input()
 
-iQFT = genericGate(t)
-iQFT.matrix = np.array(np.asmatrix(QFT.matrix).H)
+iQFT = genericGate(t + bBits + 1)
+iQFTMat = np.array(np.asmatrix(QFTmatrix(2**t, 1j)).H, dtype=complex)
+toKron = np.zeros((2**(bBits + 1), 2**(bBits + 1)))
+iQFT.matrix = np.kron(iQFTMat, toKron)
 
+phiba = iQFT(phiba)
+print(phiba)
+input()
+
+iham = genericGate(t + bBits + 1)
+ihamMat = np.array(np.asmatrix(hamMat).H, dtype=complex)
+toKron = np.array([[1,0],[0,1]])
+iham.matrix = np.kron(ihamMat, toKron)
+
+phiba = iham(phiba)
+
+print(phiba)
+input()
+print(phiba.observe(bit=t+bBits))
 
 
 
