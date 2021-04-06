@@ -34,75 +34,65 @@ phi0b = prod(phi0, b)
 
 t0 = 1
 
+### HAMILTONIAN SIMULATION
+
 hamMatTerms = []
 
 for tau in range(T):                    #construct hamilton operator
     tautau = np.zeros((T, T))
     tautau[tau, tau] = 1             # t x t
-    print("tautau: ", tautau.shape)
     oper = expm(1j*tau*t0*A/T)      # t x t
-    print("oper: ", oper.shape)
     term = np.kron(tautau, oper)    # tT x tT
-    print("TERM: ", term.shape)
     hamMatTerms.append(term)
-
-print("==============================")
 
 hamMat = np.sum(hamMatTerms, axis=0)                   
 ham = genericGate(bBits+t)        #make it a gate
 ham.matrix = hamMat
-print(hamMat.shape)
 
-QFT = genericGate(t)    ###### only phi gets qft'd
-QFTMat = QFTmatrix((2**bBits)*T, 1j)
-print(QFTMat.shape)
-QFT.matrix = np.kron(QFTMat, np.eye(bBits))
+phib = ham(phi0b)
 
-phib = QFT(ham(phi0b))
-print(phib)
+### QFT
+
+QFTGate = QFT(t)    ###### only phi gets qft'd
+QFTGate = parallelGate([QFTGate, identity(bBits)]) 
+phib = QFTGate(phib)
+
+### ADD ANCILLA
 
 ancilla = register(1)    
 phiba = prod(phib, ancilla)
 
-#first ? bits are lambdaK, next ? bits are Uj, finally ancilla.
-
-### [C C C ... C C 0 0 ... 0 0 Rx(?)]
+### CONTOLLED U ROTATION
+# want to make a less hacky implementation here - will need to rethink controlled
+#  gates in qutiepy...
 
 toKron = [np.eye(2)] * t + [np.array([[1,0],[0,0]])] * bBits + [np.array([[0,-1],[1,0]])]  #?????
 
 res = toKron[0]
 for m in toKron[1:]:
     res = np.kron(res, m)
-    print(res)
-    input()
-
-print(toKron)
-input()
+    
 contRotGate = genericGate(t + bBits + 1)
 contRotGate.matrix = res
 
 phiba = contRotGate(phiba)
-print(phiba)
-input()
 
-iQFT = genericGate(t + bBits + 1)
-iQFTMat = np.array(np.asmatrix(QFTmatrix(2**t, 1j)).H, dtype=complex)
-toKron = np.zeros((2**(bBits + 1), 2**(bBits + 1)))
-iQFT.matrix = np.kron(iQFTMat, toKron)
+### iQFT
 
-phiba = iQFT(phiba)
-print(phiba)
-input()
+iQFTGate = QFTGate.H()
+iQFTGate = parallelGate([iQFTGate, identity(1)])
 
-iham = genericGate(t + bBits + 1)
-ihamMat = np.array(np.asmatrix(hamMat).H, dtype=complex)
-toKron = np.array([[1,0],[0,1]])
-iham.matrix = np.kron(ihamMat, toKron)
+phiba = iQFTGate(phiba)
+
+### INVERSE HAMILTONIAN
+
+iham = ham.H()
+iham = parallelGate([iham, identity(1)])
 
 phiba = iham(phiba)
 
-print(phiba)
-input()
+### OBSERVE ANCILLA
+
 print(phiba.observe(bit=t+bBits))
 
 
