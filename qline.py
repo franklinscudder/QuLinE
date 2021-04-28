@@ -2,9 +2,9 @@
 from qutiepy import *
 import numpy as np
 from scipy.linalg import expm
+import warnings
 
-
-
+warnings.filterwarnings('ignore')
 """
 
 Ax = b
@@ -29,7 +29,7 @@ def main(debug=False):
     
     t = 6  # bits in phi
     T = 2 ** t    # states in phi
-    amps = np.sqrt(2/T) * np.array([np.sin((np.pi*(tau+0.5)/T)) for tau in range(T)])
+    amps = np.flip(np.sqrt(2/T) * np.array([np.sin((np.pi*(tau+0.5)/T)) for tau in range(T)]))
     phi0 = register(t)
     phi0.setAmps(amps)
     phi0b = prod(phi0, b)
@@ -152,6 +152,7 @@ def main(debug=False):
         
 def binToX(phi, dim):
     phi = phi[:-1]
+    phi = phi[::-1]
     t = len(phi)
     l = int(t/dim)
     phi = list(map(''.join, zip(*[iter(phi)]*l)))
@@ -159,7 +160,7 @@ def binToX(phi, dim):
     out = []
     
     for ele in phi:
-        val = int(ele, 2)/2**l
+        val = int(ele[1:], 2)/2**l
         if ele[0] == "1":
             val -= 1
             
@@ -169,11 +170,12 @@ def binToX(phi, dim):
     
         
 if __name__ == "__main__":
-    done = False
+    done = main(False)
     while not done:
         print("Trying again...")
-        done = main(True)
-    
+        done = main(False)
+        
+        
     print(binToX(done, 2))
         
 
