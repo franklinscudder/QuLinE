@@ -98,7 +98,7 @@ def main(debug=False):
         preGates.append(identity(bBits + 1))
         preGate = parallelGate(preGates)
         
-        theta = np.arccos(0.002/((x/2**t))) ## I think...?
+        theta = np.arccos(0.0035/((x/T))) ## I think...?
         controlledGate = genericGate(1)
         s = np.sin(theta/2)
         c = np.cos(theta/2)
