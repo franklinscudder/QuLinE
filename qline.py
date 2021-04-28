@@ -11,28 +11,23 @@ Ax = b
 
 """
 
-def QFTmatrix(N, omg):
-    matrix = np.zeros((N,N), dtype=complex)
-    for x in range(N):
-        for y in range(N):
-            matrix[x,y] = omg ** (x*y)
-    
-    return matrix / np.sqrt(N)
-
 
 def main(debug=False):
-    A = np.array([[1,0],
-                  [0,1]])
+    A = np.array([[0.707,0.707],
+                  [0.707,-0.707]])
     
     k = np.linalg.cond(A)
     print("k = ", k)
     
     bBits = int(np.log2(A.shape[0]))
-    bAmps = [1, -1]
+    bAmps = [1, 0]
     
     b = register(bBits)
     b.setAmps(bAmps)
-    t = 8  # bits in phi
+    
+    answer = np.linalg.solve(A, b.amps).astype(float)
+    
+    t = 6  # bits in phi
     T = 2 ** t    # states in phi
     amps = np.sqrt(2/T) * np.array([np.sin((np.pi*(tau+0.5)/T)) for tau in range(T)])
     phi0 = register(t)
@@ -60,7 +55,7 @@ def main(debug=False):
     
     if debug:
         print("Hamiltonian:\n", phib)
-        input()
+        input("Press enter to continue...")
     
     ### QFT
     
@@ -70,7 +65,7 @@ def main(debug=False):
     
     if debug:
         print("QFT:\n", phib)
-        input()
+        input("Press enter to continue...")
     
     ### ADD ANCILLA
     
@@ -79,7 +74,7 @@ def main(debug=False):
     
     if debug:
         print("Add Ancilla:\n", phiba)
-        input()
+        input("Press enter to continue...")
     
     ### CONTOLLED U ROTATION
     
@@ -118,7 +113,7 @@ def main(debug=False):
     
     if debug:
         print("Controlled Rotation:\n", phiba)
-        input()
+        input("Press enter to continue...")
     
     ### iQFT
     
@@ -129,7 +124,7 @@ def main(debug=False):
     
     if debug:
         print("iQFT:\n", phiba)
-        input()
+        input("Press enter to continue...")
     
     ### INVERSE HAMILTONIAN
     
@@ -140,24 +135,47 @@ def main(debug=False):
     
     if debug:
         print("Inv. Hamiltonian:\n", phiba)
-        input()
+        input("Press enter to continue...")
     
     ### OBSERVE ANCILLA
     
     ancilla = phiba.observe(bit=phiba.NBits-1)
-    print(ancilla)
+    print("Ancilla observed as: ", ancilla)
     
     if ancilla:
-        print(f'{0:0{phiba.NBits-1}0b}'.format(phiba.observe()))
-        return True
+        print(bin(phiba.observe())[2:])
+        print(answer)
+        return bin(phiba.observe())[2:]
     
     else:
         return False
         
+def binToX(phi, dim):
+    phi = phi[:-1]
+    t = len(phi)
+    l = int(t/dim)
+    phi = list(map(''.join, zip(*[iter(phi)]*l)))
+    
+    out = []
+    
+    for ele in phi:
+        val = int(ele, 2)/2**l
+        if ele[0] == "1":
+            val -= 1
+            
+        out.append(val)
+    
+    return out
+    
+        
 if __name__ == "__main__":
-    while not main(False):
-        pass
-
+    done = False
+    while not done:
+        print("Trying again...")
+        done = main(True)
+    
+    print(binToX(done, 2))
+        
 
 
 
